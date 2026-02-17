@@ -1,0 +1,19 @@
+<div class="row mb-0 bg-danger">
+    <div class="d-flex justify-content-between px-4 py-2">
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'dashboard' %}" class="d-flex gap-2 align-items-center" style="text-decoration: none;">
+                <i class="bi bi-cash h3 text-white"></i>
+                <h3 class="text-white fw-semibold">CashCare</h3>
+            </a>
+        </div>
+        <div class="d-flex align-items-center gap-2 px-4">
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-box-arrow-right"></i>
+                    Sair
+                </button>
+            </form>
+        </div>
+    </div>
+</div>

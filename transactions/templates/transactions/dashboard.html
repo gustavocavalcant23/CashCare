@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% load br_filters %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block header %}
+{% include 'components/_header.html' %}
+{% endblock %}
+
+{% block content %}
+
+<h1>Olá, {{ name }}!</h1>
+
+<hr class="border-secondary">
+
+{% include 'components/_navbar.html' %}
+
+<hr class="border-secondary">
+
+<div class="row mb-4 g-3">
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-secondary h-100">
+            <div class="card-body py-3">
+                <h5 class="text-muted mb-3">
+                    <i class="bi bi-wallet2 me-2"></i> Saldo
+                </h5>
+                <h4 class="fw-semibold text-white">R$ {{ current_balance|br_number:2 }}</h4>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-secondary h-100">
+            <div class="card-body py-3">
+                <h5 class="text-muted mb-3">
+                    <i class="bi bi-arrow-up-circle text-success me-2"></i> Entradas no mês
+                </h5>
+                <h4 class="fw-semibold text-success">+ R$ {{ monthly_incomes|br_number:2 }}</h4>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-secondary h-100">
+            <div class="card-body py-3">
+                <h5 class="text-muted mb-3">
+                    <i class="bi bi-arrow-down-circle text-danger me-2"></i> Saídas no mês
+                </h5>
+                <h4 class="fw-semibold text-danger">- R$ {{ monthly_expenses|br_number:2 }}</h4>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-sm-6 col-lg-3">
+        <div class="card border-secondary h-100">
+            <div class="card-body py-3">
+                <h5 class="text-muted mb-3">
+                    <i class="bi bi-piggy-bank text-warning me-2"></i> Economias do mês
+                </h5>
+                <h4 class="fw-semibold text-warning">R$ {{ monthly_savings|br_number:2 }}</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card border-secondary">
+            <div class="card-header border-secondary d-flex align-items-center">
+                <i class="bi bi-graph-up me-2"></i> 
+                <h5 class="text-white mb-0 fw-semibold">
+                    Evolução do Saldo
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="graficoLinha" style="width:100%; height:300px;"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-lg-6">
+        <div class="card border-secondary">
+            <div class="card-header border-secondary d-flex align-items-center">
+                <i class="bi bi-pie-chart me-2"></i> 
+                <h5 class="text-white mb-0 fw-semibold">
+                    Despesas por Categoria
+                </h5>
+            </div>
+            <div class="card-body">
+                <canvas id="graficoBarras" style="width:100%; height:300px;"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card border-secondary">
+            <div class="card-header border-secondary d-flex justify-content-between align-items-center">
+                <div class="d-flex">
+                    <i class="bi bi-clock me-2"></i>
+                    <h5 class="text-white mb-0 fw-semibold">Últimas Transações</h5>
+                </div>
+                <a href="{% url 'transaction_list' %}" class="btn btn-sm btn-outline-secondary">
+                    Ver todas
+                </a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover mb-0">
+                        <thead class="text-muted">
+                            <tr>
+                                <th>Data</th>
+                                <th>Descrição</th>
+                                <th>Categoria</th>
+                                <th class="text-end">Valor</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transacao in ultimas_transacoes %}
+                            <tr>
+                                <td>{{ transacao.date|date:"d/m/Y" }}</td>
+                                <td>{{ transacao.title }}</td>
+                                <td>
+                                    <span class="badge bg-primary mb-1">
+                                        {{ transacao.get_category_display }}
+                                    </span>
+                                </td>
+                                <td class="text-end {% if transacao.type == 'IN' %}text-success{% else %}text-danger{% endif %}">
+                                    {% if transacao.type == 'IN' %}+{% else %}-{% endif %}
+                                    R$ {{ transacao.amount|br_number:2 }}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center text-muted py-4">
+                                    Nenhuma transação encontrada
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const formatMoney = (value) => {
+        return value.toLocaleString('pt-BR', { 
+            style: 'currency', 
+            currency: 'BRL' 
+        });
+    };
+    
+    const ctxLinha = document.getElementById('graficoLinha').getContext('2d');
+    const labels = {{ grafico_linha_labels|safe }};
+    const dados = {{ grafico_linha_data|safe }};
+    
+    new Chart(ctxLinha, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Saldo',
+                data: dados,
+                borderColor: '#dc3545',
+                backgroundColor: 'rgba(220, 53, 69, 0.1)',
+                tension: 0.1,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: (context) => `Saldo: ${formatMoney(context.parsed.y)}`
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    ticks: { 
+                        callback: (value) => formatMoney(value)
+                    },
+                    grid: { color: '#2c3440' }
+                },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+    
+    const ctxBarras = document.getElementById('graficoBarras').getContext('2d');
+    const categoriasLabels = {{ categorias_labels|safe }};
+    const categoriasData = {{ categorias_data|safe }};
+    const cores = ['#dc3545', '#fd7e14', '#ffc107', '#198754', '#0dcaf0', '#0d6efd'];
+    
+    new Chart(ctxBarras, {
+        type: 'bar',
+        data: {
+            labels: categoriasLabels,
+            datasets: [{
+                label: 'Total',
+                data: categoriasData,
+                backgroundColor: cores.slice(0, categoriasLabels.length),
+                borderRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            indexAxis: 'y',
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        title: (context) => {
+                            return context[0].label; 
+                        },
+                        label: (context) => {
+                            return `Valor: ${formatMoney(context.raw)}`;
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: { 
+                        callback: (value) => formatMoney(value)
+                    },
+                    grid: { color: '#2c3440' }
+                },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

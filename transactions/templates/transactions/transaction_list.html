@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+{% load url_replace %}
+{% load br_filters %}
+
+{% block title %}Suas Transações{% endblock %}
+
+{% block header %}
+{% include 'components/_header.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center">
+    <i class="bi bi-list-ul me-2 h2"></i>
+    <h1 class="fw-semibold">Suas Transações</h1>
+</div>
+
+<hr class="border-secondary">
+
+{% include 'components/_navbar.html' %}
+
+
+<div class="d-flex justify-content-center">
+    <div class="card shadow-sm col-md-12">
+        <div class="card-body">
+
+            <div class="card shadow-sm mb-3">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <form method="get" id="filter-form" class="col-md-8">
+                            <div class="col-md-8">
+                                <div class="input-group">
+                                    <input type="text" 
+                                    name="search" 
+                                    class="form-control bg-dark text-light border-secondary"
+                                    placeholder="Buscar por título..."
+                                    value="{{ search }}"
+                                    id="search-input">
+                                    <button type="submit" form="filter-form" class="btn btn-danger">
+                                        <i class="bi bi-search"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                        
+                        <div class="col-md-4 d-flex justify-content-end gap-2">
+                            <button type="button" 
+                                    class="btn btn-outline-secondary position-relative"
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#filterModal">
+                                <i class="bi bi-funnel"></i> Filtros
+                                {% if total_filtros_ativos > 0 %}
+                                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                                    {{ total_filtros_ativos }}
+                                </span>
+                                {% endif %}
+                            </button>
+                            
+                            <a href="{% url 'transaction_list' %}" class="btn btn-outline-secondary">
+                                <i class="bi bi-x-circle"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal fade" id="filterModal" tabindex="-1" aria-labelledby="filterModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        
+                        <div class="modal-header border-secondary">
+                            <h5 class="modal-title text-white" id="filterModalLabel">
+                                <i class="bi bi-funnel text-white me-2"></i>
+                                Filtros Avançados
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+                        
+                        <div class="modal-body">
+                            <form method="get" id="filter-form-modal">
+                                
+                                <div class="mb-4">
+                                    <h6 class="text-white-50 mb-3">
+                                        <i class="bi bi-calendar-range me-2"></i>Período
+                                    </h6>
+                                    <div class="row g-2">
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="period" id="period7" value="7" {% if current_period == '7' %}checked{% endif %}>
+                                                <label class="form-check-label text-white" for="period7">
+                                                    Últimos 7 dias
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="period" id="period15" value="15" {% if current_period == '15' %}checked{% endif %}>
+                                                <label class="form-check-label text-white" for="period15">
+                                                    Últimos 15 dias
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="period" id="period30" value="30" {% if current_period == '30' %}checked{% endif %}>
+                                                <label class="form-check-label text-white" for="period30">
+                                                    Últimos 30 dias
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="period" id="period45" value="45" {% if current_period == '45' %}checked{% endif %}>
+                                                <label class="form-check-label text-white" for="period45">
+                                                    Últimos 45 dias
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="period" id="period60" value="60" {% if current_period == '60' %}checked{% endif %}>
+                                                <label class="form-check-label text-white" for="period60">
+                                                    Últimos 60 dias
+                                                </label>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="radio" name="period" id="periodCustom" value="custom" {% if current_period == 'custom' %}checked{% endif %}>
+                                                <label class="form-check-label text-white" for="periodCustom">
+                                                    Personalizado
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row mt-3" id="custom-dates" style="{% if current_period == 'custom' or start_date or end_date %}display: flex;{% else %}display: none;{% endif %}">
+                                        <div class="col-md-6">
+                                            <label class="text-white-50 small">Data inicial</label>
+                                            <input type="date" 
+                                                name="start_date" 
+                                                class="form-control bg-dark text-light border-secondary" 
+                                                value="{{ start_date }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="text-white-50 small">Data final</label>
+                                            <input type="date" 
+                                                name="end_date" 
+                                                class="form-control bg-dark text-light border-secondary" 
+                                                value="{{ end_date }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <hr class="border-secondary">
+                                
+                                <div class="mb-4">
+                                    <h6 class="text-white-50 mb-3">
+                                        <i class="bi bi-arrow-left-right me-2"></i>Tipo
+                                    </h6>
+                                    <div class="d-flex gap-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="type_in" id="typeIN" value="IN" {% if 'IN' in selected_types %}checked{% endif %}>
+                                            <label class="form-check-label text-white" for="typeIN">
+                                                <span class="text-success">Entradas</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="type_out" id="typeOUT" value="OUT" {% if 'OUT' in selected_types %}checked{% endif %}>
+                                            <label class="form-check-label text-white" for="typeOUT">
+                                                <span class="text-danger">Saídas</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <hr class="border-secondary">
+                                
+                                <div class="mb-4">
+                                    <h6 class="text-white-50 mb-3">
+                                        <i class="bi bi-check-circle me-2"></i>Status
+                                    </h6>
+                                    <div class="d-flex gap-4">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="status_completed" id="statusCompleted" value="completed" {% if 'completed' in selected_status %}checked{% endif %}>
+                                            <label class="form-check-label text-white" for="statusCompleted">
+                                                <span class="badge bg-success">Concluídas</span>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="status_pending" id="statusPending" value="pending" {% if 'pending' in selected_status %}checked{% endif %}>
+                                            <label class="form-check-label text-white" for="statusPending">
+                                                <span class="badge bg-warning text-dark">Pendentes</span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <hr class="border-secondary">
+                                
+                                <div class="mb-4">
+                                    <h6 class="text-white-50 mb-3">
+                                        <i class="bi bi-tags me-2"></i>Categorias
+                                    </h6>
+                                    <div class="row g-2">
+                                        {% for value, label in categorias %}
+                                        <div class="col-md-4">
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" name="category" value="{{ value }}" id="cat{{ value }}" {% if value in selected_categories %}checked{% endif %}>
+                                                <label class="form-check-label text-white" for="cat{{ value }}">
+                                                    {{ label }}
+                                                </label>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                
+                            </form>
+                        </div>
+                        
+                        <div class="modal-footer d-flex justify-content-center gap-3">
+                            
+                            <button type="submit" form="filter-form-modal" class="btn btn-danger">
+                                <i class="bi bi-check-circle"></i> Aplicar filtros
+                            </button>
+
+                            <a href="{% url 'transaction_list' %}" class="btn btn-outline-warning">
+                                <i class="bi bi-eraser"></i> Limpar todos
+                            </a>
+
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                Cancelar
+                            </button>
+                            
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+
+            {% for transaction in transactions %}
+            <div class="col-md-6 col-lg-12">
+                <div class="card mb-2" style="height: 130px;">  
+                    <div class="card-body h-100">
+                        <div class="row h-100">
+                            <div class="col-lg-10 d-flex flex-column h-100">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="d-flex gap-3 align-items-center">
+                                        <h4 class="card-title text-white fw-semibold mb-0">{{ transaction.title }}</h4>
+                                        <span class="badge bg-primary">{{ transaction.get_category_display }}</span>
+                                    </div>
+                                    
+                                    {% if not transaction.is_completed %}
+                                        <span class="badge bg-warning text-dark">Pendente</span>
+                                    {% else %}
+                                        <span class="badge bg-success text-light">Concluída</span>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="flex-grow-1"></div>
+                                
+                                <div class="d-flex justify-content-between align-items-end">
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar"></i> {{ transaction.date|date:"d/m/Y" }}
+                                    </small>
+                                    <h5 class="mb-0 {% if transaction.type == 'IN' %}text-success{% else %}text-danger{% endif %} fw-semibold">
+                                        {% if transaction.type == 'IN' %}+{% else %}-{% endif %}
+                                        R$ {{ transaction.amount|br_number:2 }}
+                                    </h5>
+                                </div>
+                            </div>
+                            
+                            <div class="col-2 h-100">
+                                <div class="d-flex flex-column h-100">
+                                    <div class="d-flex flex-column gap-2 w-100 justify-content-center h-100">
+                                        {% if not transaction.is_completed %}
+                                        <form action="{% url 'transaction_complete' transaction.pk %}" method="post" style="display: inline;">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-success w-100">
+                                                <i class="bi bi-check-circle"></i> Concluir
+                                            </button>
+                                        </form>
+                                        {% endif %}
+
+                                        <button type="button" 
+                                                class="btn btn-sm btn-outline-danger w-100" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#deleteModal{{ transaction.pk }}">
+                                            <i class="bi bi-trash"></i> Excluir
+                                        </button>
+
+                                        <div class="modal fade" id="deleteModal{{ transaction.pk }}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog">
+                                                <div class="modal-content border-secondary">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title text-danger">
+                                                            <i class="bi bi-exclamation-triangle-fill"></i>
+                                                            Confirmar Exclusão
+                                                        </h5>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    
+                                                    <div class="modal-body">
+                                                        <p class="text-white-50 mb-0">
+                                                            Tem certeza que deseja excluir a transação:
+                                                        </p>
+                                                        <h6 class="text-white fw-semibold mt-2 mb-1">
+                                                            {{ transaction.title }}
+                                                        </h6>
+                                                        <p class="text-white-50 small">
+                                                            Valor: 
+                                                            <span class="{% if transaction.type == 'IN' %}text-success{% else %}text-danger{% endif %} fw-semibold">
+                                                                {% if transaction.type == 'IN' %}+{% else %}-{% endif %}
+                                                                R$ {{ transaction.amount|floatformat:2 }}
+                                                            </span>
+                                                        </p>
+                                                        <p class="text-danger small mt-3 mb-0">
+                                                            <i class="bi bi-info-circle"></i>
+                                                            Esta ação não pode ser desfeita.
+                                                        </p>
+                                                    </div>
+                                                    
+                                                    <div class="modal-footer d-flex justify-content-center">
+                                                        <form method="post" action="{% url 'transaction_delete' transaction.pk %}">
+                                                            {% csrf_token %}
+                                                            <button type="submit" class="btn btn-danger">
+                                                                <i class="bi bi-trash"></i>
+                                                                Excluir
+                                                            </button>
+                                                        </form>
+
+                                                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                                                            <i class="bi bi-x-circle"></i>
+                                                            Cancelar
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <a href="{% url 'transaction_update' transaction.pk %}" class="btn btn-sm btn-outline-warning w-100">
+                                            <i class="bi bi-pencil"></i> Editar
+                                        </a>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-inbox h1 d-block"></i>
+                    <p>Nenhuma transação encontrada</p>
+                </div>
+            </div>
+            {% endfor %}
+
+            {% include 'components/_paginator.html' %}
+
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const customDates = document.getElementById('custom-dates');
+    const periodRadios = document.querySelectorAll('input[name="period"]');
+    const startDateInput = document.querySelector('input[name="start_date"]');
+    const endDateInput = document.querySelector('input[name="end_date"]');
+    
+    function toggleCustomDates() {
+        const selectedPeriod = document.querySelector('input[name="period"]:checked');
+        
+        if (selectedPeriod && selectedPeriod.value === 'custom') {
+            customDates.style.display = 'flex';
+        } else {
+            customDates.style.display = 'none';
+        }
+    }
+    
+    periodRadios.forEach(radio => {
+        radio.addEventListener('change', toggleCustomDates);
+    });
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasStartDate = urlParams.has('start_date') && urlParams.get('start_date');
+    const hasEndDate = urlParams.has('end_date') && urlParams.get('end_date');
+    const periodFromUrl = urlParams.get('period');
+    
+    if ((hasStartDate || hasEndDate) && periodFromUrl !== 'custom') {
+        document.querySelector('input[name="period"][value="custom"]').checked = true;
+        toggleCustomDates();
+    }
+    
+    if (!periodFromUrl && !hasStartDate && !hasEndDate) {
+        periodRadios.forEach(radio => {
+            if (radio.value !== 'custom') {
+                radio.checked = false;
+            }
+        });
+        customDates.style.display = 'none';
+    }
+    
+    if (periodFromUrl && periodFromUrl !== 'custom') {
+        customDates.style.display = 'none';
+    }
+    
+    if (periodFromUrl === 'custom') {
+        customDates.style.display = 'flex';
+    }
+});
+</script>
+
+{% endblock %}

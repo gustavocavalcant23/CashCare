@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+
+{% block title %}Calendário{% endblock %}
+
+{% block header %}
+{% include 'components/_header.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex mb-3 justify-content-between align-items-center">
+    <div class="d-flex align-items-center">
+        <i class="bi bi-calendar me-2 h2"></i>
+        <h1 class="fw-semibold">{{ month_name }} {{ year }}</h1>
+    </div>
+    
+    <div class="d-flex justify-content-center align-items-center gap-4 mb-4">
+        <a href="{% url 'calendar' prev_year prev_month %}" class="btn btn-outline-danger">
+            <i class="bi bi-chevron-left"></i> Mês Anterior
+        </a>
+        <h5 class="text-white-50 mb-0">|</h5>
+        <a href="{% url 'calendar' next_year next_month %}" class="btn btn-outline-danger">
+            Próximo Mês <i class="bi bi-chevron-right"></i>
+        </a>
+    </div>
+</div>
+
+<hr class="border-secondary mb-4">
+
+<div class="row d-flex justify-content-center mb-0">
+    {% include 'components/_navbar.html' %}
+</div>
+
+<hr class="border-secondary mb-4 mt-1">
+
+<div class="row g-0 mb-2 text-center text-muted">
+    <div class="col">Dom</div>
+    <div class="col">Seg</div>
+    <div class="col">Ter</div>
+    <div class="col">Qua</div>
+    <div class="col">Qui</div>
+    <div class="col">Sex</div>
+    <div class="col">Sáb</div>
+</div>
+
+<div class="row row-cols-7 g-1" id="calendar-grid"></div>
+
+<style>
+.row-cols-7 > * {
+    width: 14.2857142857%;
+    flex: 0 0 auto;
+}
+</style>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.calendar-day {
+    background-color: #1a1e24;  
+    transition: all 0.2s;
+}
+
+.calendar-day.today {
+    background-color: rgba(241, 7, 30, 0.2);  
+    border: 1px solid rgba(241, 71, 88, 0.2) !important;
+}
+
+.calendar-day.today:hover {
+    background-color: rgba(207, 58, 73, 0.2);
+}
+
+.calendar-day.weekend {
+    background-color: #1f252e;  
+}
+
+.calendar-day.empty {
+    background-color: #151a1f;  
+    opacity: 0.6;
+}
+
+.calendar-day:hover {
+    background-color: #2c3440;
+    transform: translateY(-2px);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const daysData = {{ days_data|safe }};
+const currentYear = {{ year }};
+const currentMonth = {{ month }};
+
+function renderCalendar() {
+    const grid = document.getElementById('calendar-grid');
+    grid.innerHTML = '';
+    
+    const firstDay = new Date(currentYear, currentMonth - 1, 1).getDay();
+    const lastDate = new Date(currentYear, currentMonth, 0).getDate();
+    
+    // Dias vazios do início
+    for (let i = 0; i < firstDay; i++) {
+        grid.innerHTML += `
+            <div class="col">
+                <div class="calendar-day empty p-2 text-center border border-secondary rounded" style="height: 100px;">
+                    &nbsp;
+                </div>
+            </div>
+        `;
+    }
+    
+    for (let d = 1; d <= lastDate; d++) {
+        const dayData = daysData[d] || { completed: 0, pending: 0 };
+        
+        const isToday = new Date().getDate() === d && 
+                        new Date().getMonth() + 1 === currentMonth && 
+                        new Date().getFullYear() === currentYear;
+        
+        const dayOfWeek = new Date(currentYear, currentMonth - 1, d).getDay();
+        const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+        
+        let dayClasses = 'calendar-day card border-secondary text-center p-2';
+        if (isToday) dayClasses += ' today';
+        if (isWeekend && !isToday) dayClasses += ' weekend';
+        
+        let badgesCompleted = '';
+        let badgesPending = '';
+        if (dayData.completed == 1) {
+            badgesCompleted += `<span class="badge bg-success me-1">${dayData.completed} Concluída</span>`;
+        }
+        if (dayData.completed > 1) {
+            badgesCompleted += `<span class="badge bg-success me-1">${dayData.completed} Concluídas</span>`;
+        }
+        if (dayData.pending == 1) {
+            badgesPending += `<span class="badge bg-warning text-dark">${dayData.pending} Pendente</span>`;
+        }
+        if (dayData.pending > 1) {
+            badgesPending += `<span class="badge bg-warning text-dark">${dayData.pending} Pendentes</span>`;
+        }
+        
+        grid.innerHTML += `
+            <div class="col">
+                <div class="${dayClasses}" 
+                    style="height: 100px; cursor: pointer; position: relative;"
+                    onclick="window.location.href='{% url 'transaction_list' %}?start_date=${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}&end_date=${currentYear}-${String(currentMonth).padStart(2,'0')}-${String(d).padStart(2,'0')}'">
+                    
+                    <!-- Número do dia no canto superior esquerdo -->
+                    <div class="fw-bold text-white h5 justify-content-center">
+                        ${d}
+                    </div>
+                    
+                    <!-- Badges empilhadas à esquerda, centralizadas verticalmente -->
+                    <div class="position-absolute top-50 start-0 translate-middle-y ms-2 mt-3">
+                        <div class="d-flex flex-column gap-1 align-items-start">
+                            ${badgesCompleted}
+                            ${badgesPending}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    const totalCells = Math.ceil((firstDay + lastDate) / 7) * 7;
+    for (let i = firstDay + lastDate; i < totalCells; i++) {
+        grid.innerHTML += `
+            <div class="col">
+                <div class="calendar-day empty p-2 text-center border border-secondary rounded" style="height: 100px;">
+                    &nbsp;
+                </div>
+            </div>
+        `;
+    }
+}
+
+renderCalendar();
+</script>
+{% endblock %}

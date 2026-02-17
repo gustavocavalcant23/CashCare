@@ -1,0 +1,26 @@
+<div class="row mb-4 justify-content-center">
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-center gap-3 flex-wrap">
+                    <a href="{% url 'dashboard' %}" class="btn btn-danger d-flex align-items-center">
+                        <i class="bi bi-house-fill me-2"></i>
+                        Home
+                    </a>
+                    <a href="{% url 'transaction_create' %}" class="btn btn-danger d-flex align-items-center">
+                        <i class="bi bi-plus-circle me-2"></i>
+                        Nova Transação
+                    </a>
+                    <a href="{% url 'transaction_list' %}" class="btn btn-danger d-flex align-items-center">
+                        <i class="bi bi-list-ul me-2"></i>
+                        Listar Transações
+                    </a>
+                    <a href="{% url 'calendar' %}" class="btn btn-danger d-flex align-items-center">
+                        <i class="bi bi-calendar me-2"></i>
+                        Calendário
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

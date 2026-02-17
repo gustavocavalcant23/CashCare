@@ -1,0 +1,78 @@
+<!-- PAGINAÇÃO -->
+{% load url_replace %}
+
+{% if page_obj.has_other_pages %}
+<nav aria-label="Navegação entre páginas" class="mt-4">
+    <ul class="pagination justify-content-center">
+        
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link border-secondary text-white" 
+               href="?{% url_replace page=page_obj.previous_page_number %}"
+               aria-label="Anterior">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link border-secondary text-muted">&laquo;</span>
+        </li>
+        {% endif %}
+        
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <li class="page-item active" aria-current="page">
+                    <span class="page-link bg-danger border-danger text-white">{{ num }}</span>
+                </li>
+            {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                    <a class="page-link border-secondary text-white" 
+                       href="?{% url_replace page=num %}">{{ num }}</a>
+                </li>
+            {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link border-secondary text-white" 
+               href="?{% url_replace page=page_obj.next_page_number %}"
+               aria-label="Próximo">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% else %}
+        <li class="page-item disabled">
+            <span class="page-link border-secondary text-muted">&raquo;</span>
+        </li>
+        {% endif %}
+        
+    </ul>
+</nav>
+
+<style>
+.pagination .page-link {
+    transition: all 0.2s;
+    margin: 0 2px;
+    border-radius: 4px;
+}
+
+.pagination .page-link:hover {
+    background-color: #dc3545 !important;
+    border-color: #dc3545 !important;
+    color: white !important;
+}
+
+.pagination .active .page-link {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    font-weight: bold;
+}
+
+.pagination .disabled .page-link {
+    background-color: #1a1e24;
+    border-color: #2c3440;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+</style>
+{% endif %}

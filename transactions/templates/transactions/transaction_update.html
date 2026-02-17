@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Transação{% endblock %}
+
+{% block header %}
+{% include 'components/_header.html' %}
+{% endblock %}
+
+{% block content %}
+
+<div class="d-flex align-items-center">
+    <i class="bi bi-pencil me-2 h2"></i>
+    <h1 class="fw-semibold">Editar Transação</h1>
+</div>
+
+<hr class="border-secondary mt-2">
+
+<div class="fluid-container d-flex justify-content-center">
+    <div class="card shadow-sm col-md-10">
+        <div class="card-body">
+            <div class="justify-content-center">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label for="{{ form.title.id_for_label }}" class="form-label text-white-50">
+                            Título
+                        </label>
+                        <input type="text" 
+                        name="{{ form.title.name }}"
+                        id="{{ form.title.id_for_label }}"
+                        class="form-control bg-dark text-light border-secondary"
+                        placeholder="Ex: Salário, Mercado, etc"
+                        value="{{ form.title.value|default:'' }}"
+                        required>
+                        {% if form.title.errors %}
+                        <div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.amount.id_for_label }}" class="form-label text-white-50">
+                            Valor (R$)
+                        </label>
+                        <input type="number" 
+                            name="{{ form.amount.name }}"
+                            id="{{ form.amount.id_for_label }}"
+                            class="form-control bg-dark text-light border-secondary"
+                            step="0.01"
+                            placeholder="0,00"
+                            value="{{ form.amount.value|default:'' }}"
+                            required>
+                            {% if form.amount.errors %}
+                            <div class="text-danger small mt-1">{{ form.amount.errors.0 }}</div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="{{ form.type.id_for_label }}" class="form-label text-white-50">
+                                Tipo
+                            </label>
+                            <select name="{{ form.type.name }}"
+                            id="{{ form.type.id_for_label }}"
+                            class="form-select bg-dark text-light border-secondary">
+                            {% for value, label in form.fields.type.choices %}
+                            <option value="{{ value }}" {% if form.type.value == value %}selected{% endif %}>
+                                {{ label }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        {% if form.type.errors %}
+                        <div class="text-danger small mt-1">{{ form.type.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label text-white-50">
+                            Categoria
+                        </label>
+                        <select name="{{ form.category.name }}"
+                        id="{{ form.category.id_for_label }}"
+                        class="form-select bg-dark text-light border-secondary">
+                        {% for value, label in form.fields.category.choices %}
+                        <option value="{{ value }}" {% if form.category.value == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    {% if form.category.errors %}
+                    <div class="text-danger small mt-1">{{ form.category.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label for="{{ form.date.id_for_label }}" class="form-label text-white-50">
+                        Data
+                    </label>
+                    <input type="date" 
+                    name="{{ form.date.name }}"
+                    id="{{ form.date.id_for_label }}"
+                    class="form-control bg-dark text-light border-secondary"
+                    value="{{ form.date.value|date:'Y-m-d'|default:'' }}"
+                    required>
+                        {% if form.date.errors %}
+                            <div class="text-danger small mt-1">{{ form.date.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="mb-2">
+                    <div class="form-check">
+                        <input type="checkbox" 
+                        name="{{ form.is_completed.name }}"
+                        id="{{ form.is_completed.id_for_label }}"
+                        class="form-check-input"
+                        {% if form.is_completed.value %}checked{% endif %}>
+                        <label for="{{ form.is_completed.id_for_label }}" class="form-check-label text-white-50">
+                            Transação já realizada? 
+                        </label>
+                    </div>
+                    {% if form.is_completed.errors %}
+                    <div class="text-danger small mt-1">{{ form.is_completed.errors.0 }}</div>
+                    {% endif %}
+                </div>
+                
+                <div class="mb-4">
+                    <label for="{{ form.description.id_for_label }}" class="form-label text-white-50">
+                        Descrição (opcional)
+                    </label>
+                    <textarea name="{{ form.description.name }}"
+                    id="{{ form.description.id_for_label }}"
+                    class="form-control bg-dark text-light border-secondary"
+                    rows="3">{{ form.description.value|default:'' }}</textarea>
+                    {% if form.description.errors %}
+                    <div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="d-flex justify-content-center gap-3">
+                    <a href="{% url 'transaction_list' %}" class="d-flex btn btn-outline-secondary align-items-center justify-content-center">
+                        <i class="bi bi-x-circle me-1 h6"></i>
+                        <h6 class="text-muted fw-semibold">Cancelar</h6>
+                    </a>
+                    
+                    <button type="submit" class="d-flex btn btn-danger align-items-center justify-content-center">
+                        <i class="bi bi-check-circle me-1 h6"></i>
+                        <h6 class="text-white fw-semibold">Salvar</h6>
+                    </button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+</div>
+
+
+{% endblock %}
