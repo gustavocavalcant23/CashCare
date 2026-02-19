@@ -15,9 +15,8 @@ class TransactionForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control bg-dark text-light', 'rows': 3}),
         }
 
-    def __init__(self, *args, **kwargs):   
+    def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if not self.instance.pk:
             today = timezone.now().date()
             self.fields['date'].initial = today
-        

@@ -4,6 +4,7 @@ from decimal import Decimal
 
 register = template.Library()
 
+
 @register.filter
 def br_number(value, decimals=0):
     if value is None:

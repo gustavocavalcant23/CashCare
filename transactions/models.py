@@ -5,6 +5,7 @@ from django.utils import timezone
 
 User = get_user_model()
 
+
 class Transaction(models.Model):
     class Category(models.TextChoices):
         ALIMENTACAO = 'ALM', 'Alimentação'
@@ -22,33 +23,13 @@ class Transaction(models.Model):
         INCOME = 'IN', 'Entrada'
         EXPENSE = 'OUT', 'Saída'
 
-    user = models.ForeignKey(
-        User, 
-        on_delete=models.CASCADE, 
-        related_name='transactions'
-    )
-    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transactions')
     title = models.CharField('Título', max_length=120)
     description = models.TextField('Descrição', max_length=255, blank=True)
-    
     amount = models.DecimalField('Valor', max_digits=10, decimal_places=2)
-    
-    type = models.CharField(
-        'Tipo',
-        max_length=3,
-        choices=Type.choices,
-        default=Type.EXPENSE
-    )
-    
-    category = models.CharField(
-        'Categoria',
-        max_length=3,
-        choices=Category.choices,
-        default=Category.OUTROS
-    )
-    
+    type = models.CharField('Tipo', max_length=3, choices=Type.choices, default=Type.EXPENSE)
+    category = models.CharField('Categoria', max_length=3, choices=Category.choices, default=Category.OUTROS)
     is_completed = models.BooleanField('Concluída', default=False)
-    
     date = models.DateField('Data')
     created_at = models.DateTimeField('Criado em', auto_now_add=True)
     updated_at = models.DateTimeField('Atualizado em', auto_now=True)
@@ -60,7 +41,7 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f"{self.title} - {self.get_type_display()} R$ {self.amount}"
-    
+
     @property
     def status(self):
         if self.is_completed:
@@ -69,7 +50,7 @@ class Transaction(models.Model):
             return 'Agendado'
         else:
             return 'Pendente'
-    
+
     @property
     def signed_amount(self):
         return self.amount if self.type == self.Type.INCOME else -self.amount

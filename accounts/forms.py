@@ -31,7 +31,7 @@ class UserForm(UserCreationForm):
                 'placeholder': 'Digite sua senha'
             })
         }
-    
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.fields['password1'].widget.attrs.update({
@@ -42,13 +42,13 @@ class UserForm(UserCreationForm):
                 'class': 'form-control bg-dark text-light border-secondary',
                 'placeholder': 'Confirme sua senha'
             })
-    
+
     def clean_password1(self):
         password = self.cleaned_data['password1']
         if len(password) < 8:
             raise forms.ValidationError('A senha precisa ter pelo menos 8 caracteres.')
         return password
-    
+
     def clean_email(self):
         email = self.cleaned_data.get('email')
         if User.objects.filter(email=email).exists():
